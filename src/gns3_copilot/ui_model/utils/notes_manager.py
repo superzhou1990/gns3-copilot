@@ -20,6 +20,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from gns3_copilot.agent.model_factory import create_note_organizer_model
 from gns3_copilot.log_config import setup_logger
 from gns3_copilot.prompts.notes_prompt import SYSTEM_PROMPT
+from gns3_copilot.utils import get_config
 
 logger = setup_logger("notes_manager")
 
@@ -458,9 +459,12 @@ def render_notes_editor(
         st.session_state.rerun = False
         st.rerun()
 
-    # Get container height
+    # Get container height from database
     if container_height is None:
-        container_height = st.session_state.get("CONTAINER_HEIGHT", 1000)
+        try:
+            container_height = int(get_config("CONTAINER_HEIGHT", 1000))
+        except (ValueError, TypeError):
+            container_height = 1000
 
     # Get list of note files
     note_files = list_note_files()

@@ -88,9 +88,6 @@ CONFIG_MAP = {
     # Reading Page Configuration
     "CALIBRE_SERVER_URL": "CALIBRE_SERVER_URL",
     "READING_NOTES_DIR": "READING_NOTES_DIR",
-    # UI Configuration
-    "CONTAINER_HEIGHT": "CONTAINER_HEIGHT",
-    "zoom_scale_topology": "ZOOM_SCALE_TOPOLOGY",
     # Other Settings
     "LANGUAGE": "LANGUAGE",
     "TTS_HTTP_REFERER": "TTS_HTTP_REFERER",
@@ -228,46 +225,6 @@ def load_config() -> None:
                     config_value,
                 )
                 st.session_state[st_key] = 0.0
-            continue
-
-        # Special handling for CONTAINER_HEIGHT (UI setting)
-        if st_key == "CONTAINER_HEIGHT":
-            try:
-                height_int = int(config_value) if config_value else 1200
-                if not (300 <= height_int <= 1500):
-                    logger.debug(
-                        "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
-                        config_value,
-                    )
-                    height_int = 1200
-                st.session_state[st_key] = height_int
-                logger.debug("Loaded config: %s = %s", st_key, height_int)
-            except ValueError:
-                logger.debug(
-                    "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
-                    config_value,
-                )
-                st.session_state[st_key] = 1200
-            continue
-
-        # Special handling for zoom_scale_topology (UI setting)
-        if st_key == "zoom_scale_topology":
-            try:
-                zoom_float = float(config_value) if config_value else 0.8
-                if not (0.5 <= zoom_float <= 1.2):
-                    logger.debug(
-                        "Invalid zoom_scale_topology value: %s, setting to default 0.8",
-                        config_value,
-                    )
-                    zoom_float = 0.8
-                st.session_state[st_key] = zoom_float
-                logger.debug("Loaded config: %s = %s", st_key, zoom_float)
-            except ValueError:
-                logger.debug(
-                    "Invalid zoom_scale_topology value: %s, setting to default 0.8",
-                    config_value,
-                )
-                st.session_state[st_key] = 0.8
             continue
 
         # Default handling for string values

@@ -46,6 +46,7 @@ from gns3_copilot.ui_model.utils import (
 )
 from gns3_copilot.utils import (
     format_tool_response,
+    get_config,
     get_duration,
     speech_to_text,
     text_to_speech_wav,
@@ -141,8 +142,10 @@ if selected_p:
         layout_col1 = st.container()
 
     with layout_col1:
+        # Get container height from database
+        container_height = int(get_config("CONTAINER_HEIGHT", 900))
         history_container = st.container(
-            height=st.session_state.CONTAINER_HEIGHT,
+            height=container_height,
             border=False,
         )
         with history_container:
@@ -244,22 +247,21 @@ if selected_p:
             # Build the topology iframe URL based on API version and URL mode
             iframe_url = build_topology_iframe_url(project_id)
 
+            # Get container height from database
+            container_height = int(get_config("CONTAINER_HEIGHT", 900))
+            # Get zoom scale from database
+            zoom_scale = float(get_config("ZOOM_SCALE_TOPOLOGY", 0.8))
             iframe_container = st.container(
-                height=st.session_state.CONTAINER_HEIGHT,
+                height=container_height,
                 # horizontal_alignment="center",
                 vertical_alignment="center",
                 border=False,
             )
             with iframe_container:
-                # Set zoom scale (0.7 = 70%, 0.8 = 80%, 0.9 = 90%)
-                zoom_scale = (
-                    st.session_state.zoom_scale_topology
-                )  # Scale to 80%, you can adjust between 0.7-0.9
-
                 iframe_html = generate_topology_iframe_html(
                     iframe_url=iframe_url,
                     zoom_scale=zoom_scale,
-                    container_height=st.session_state.CONTAINER_HEIGHT,
+                    container_height=container_height,
                 )
 
                 st.markdown(iframe_html, unsafe_allow_html=True)
