@@ -14,6 +14,7 @@ MODULE_PATH_MAPPING: dict[str, str] = {
     # Agent modules
     "gns3_copilot": "agent",
     "checkpoint_utils": "agent",
+    "model_factory": "agent",
     # GNS3 client modules
     "connector_factory": "gns3_client",
     "custom_gns3fy": "gns3_client",
@@ -35,11 +36,7 @@ MODULE_PATH_MAPPING: dict[str, str] = {
     "gns3_topology_reader": "gns3_client",
     "gns3_update_drawing": "gns3_client",
     # Public model modules
-    "gns3_drawing_utils": "public_model",
     "get_gns3_device_port": "public_model",
-    "openai_stt": "public_model",
-    "openai_tts": "public_model",
-    "parse_tool_content": "public_model",
     # Prompts modules
     "base_prompt": "prompts",
     "drawing_prompt": "prompts",
@@ -68,6 +65,13 @@ MODULE_PATH_MAPPING: dict[str, str] = {
     "gns3_start_node": "tools_v2",
     "linux_tools_nornir": "tools_v2",
     "vpcs_tools_telnetlib3": "tools_v2",
+    # Utils modules
+    "app_config": "utils",
+    "config_db": "utils",
+    "gns3_drawing_utils": "utils",
+    "openai_stt": "utils",
+    "openai_tts": "utils",
+    "parse_tool_content": "utils",
     # UI model modules
     "app_ui": "ui_model",
     "chat": "ui_model",
