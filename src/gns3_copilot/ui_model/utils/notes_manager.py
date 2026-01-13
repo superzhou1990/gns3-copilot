@@ -13,6 +13,7 @@ This module provides a comprehensive notes management system with:
 
 import os
 from datetime import datetime
+from typing import Any
 
 import streamlit as st
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -438,22 +439,23 @@ def auto_save_note() -> None:
             logger.debug("Auto-saved note: %s", st.session_state.current_note_filename)
 
 
-def generate_experiment_plan(note_content: str) -> str:
+def generate_experiment_plan_stream(note_content: str, placeholder: Any) -> str:
     """
-    Use LLM to generate GNS3 experiment plan from note content.
+    Use LLM to generate GNS3 experiment plan with streaming output.
 
     Args:
         note_content: The note content to analyze for experiment design.
+        placeholder: Streamlit placeholder for real-time display.
 
     Returns:
-        The generated experiment plan, or empty string if generation fails.
+        The complete generated experiment plan, or empty string if generation fails.
     """
     if not note_content or not note_content.strip():
         logger.warning("Empty note content, skipping experiment planning")
         return ""
 
     try:
-        logger.info("Starting AI experiment planning")
+        logger.info("Starting AI experiment planning with streaming")
 
         # Create experiment planner model
         model = create_experiment_planner_model()
@@ -464,28 +466,41 @@ def generate_experiment_plan(note_content: str) -> str:
             HumanMessage(content=note_content),
         ]
 
-        # Show loading indicator and invoke model
-        st.toast("AI is planning your experiment...", icon="🧪")
-        result = model.invoke(messages)
+        # Show loading indicator in placeholder
+        with placeholder:
+            st.info("🧪 AI is planning your experiment...")
+            with st.spinner("Generating experiment plan..."):
+                pass
 
-        # Get content from result
-        experiment_plan: str = getattr(result, "content", "")
-        if not isinstance(experiment_plan, str):
-            experiment_plan = str(experiment_plan)
+        # Stream model output and display in real-time
+        current_text = ""
+        with placeholder:
+            st.empty()  # Clear the loading indicator
+
+        for chunk in model.stream(messages):
+            if hasattr(chunk, "content") and chunk.content:
+                current_text += chunk.content
+                # Update placeholder with current text
+                placeholder.markdown(current_text)
 
         # Validate the result
-        if not experiment_plan or not experiment_plan.strip():
+        if not current_text or not current_text.strip():
             logger.error("Invalid response from LLM")
             st.error("Failed to generate experiment plan: Invalid response from AI")
             return ""
 
         logger.info("AI experiment planning completed successfully")
-        return experiment_plan
+        return current_text
 
     except Exception as e:
         logger.error("Failed to generate experiment plan with AI: %s", e)
         st.error(f"Failed to generate experiment plan: {e}")
         return ""
+
+
+def _sync_experiment_plan() -> None:
+    """Sync edited experiment plan back to session state."""
+    st.session_state.experiment_plan = st.session_state.experiment_plan_editor
 
 
 def render_experiment_planner_button() -> None:
@@ -517,11 +532,19 @@ def render_experiment_planner_button() -> None:
             # Get current note content
             note_content = st.session_state.current_note_content
 
+            # Create placeholder for streaming output
+            output_placeholder = st.empty()
+
             # Store experiment plan in session state if not already done
             if "experiment_plan" not in st.session_state:
-                experiment_plan = generate_experiment_plan(note_content)
+                # Generate with streaming output
+                experiment_plan = generate_experiment_plan_stream(
+                    note_content, output_placeholder
+                )
                 st.session_state.experiment_plan = experiment_plan
             else:
+                # Display existing plan
+                output_placeholder.markdown(st.session_state.experiment_plan)
                 experiment_plan = st.session_state.experiment_plan
 
             # Display editable experiment plan
@@ -533,6 +556,7 @@ def render_experiment_planner_button() -> None:
                 key="experiment_plan_editor",
                 label_visibility="collapsed",
                 help="Edit the experiment plan as needed",
+                on_change=_sync_experiment_plan,
             )
 
             # Action buttons
