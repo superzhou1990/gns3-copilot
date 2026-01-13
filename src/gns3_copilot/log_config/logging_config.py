@@ -9,83 +9,81 @@ import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
 
-# Module path mapping: maps module names to their log subdirectories
-MODULE_PATH_MAPPING: dict[str, str] = {
-    # Agent modules
-    "gns3_copilot": "agent",
-    "checkpoint_utils": "agent",
-    "model_factory": "agent",
-    # GNS3 client modules
-    "connector_factory": "gns3_client",
-    "custom_gns3fy": "gns3_client",
-    "gns3_file_index": "gns3_client",
-    "gns3_create_drawing": "gns3_client",
-    "gns3_delete_drawing": "gns3_client",
-    "gns3_get_drawings": "gns3_client",
-    "gns3_get_nodes": "gns3_client",
-    "gns3_project_create": "gns3_client",
-    "gns3_project_delete": "gns3_client",
-    "gns3_project_list_files": "gns3_client",
-    "gns3_project_lock": "gns3_client",
-    "gns3_project_open": "gns3_client",
-    "gns3_project_path": "gns3_client",
-    "gns3_project_read_file": "gns3_client",
-    "gns3_project_update": "gns3_client",
-    "gns3_project_write_file": "gns3_client",
-    "gns3_projects_list": "gns3_client",
-    "gns3_topology_reader": "gns3_client",
-    "gns3_update_drawing": "gns3_client",
-    # Public model modules
-    "get_gns3_device_port": "public_model",
-    # Prompts modules
-    "base_prompt": "prompts",
-    "drawing_prompt": "prompts",
-    "english_level_prompt_a1": "prompts",
-    "english_level_prompt_a2": "prompts",
-    "english_level_prompt_b1": "prompts",
-    "english_level_prompt_b2": "prompts",
-    "english_level_prompt_c1": "prompts",
-    "english_level_prompt_c2": "prompts",
-    "prompt_loader": "prompts",
-    "title_prompt": "prompts",
-    "voice_prompt_english_level_a1": "prompts",
-    "voice_prompt_english_level_a2": "prompts",
-    "voice_prompt_english_level_b1": "prompts",
-    "voice_prompt_english_level_b2": "prompts",
-    "voice_prompt_english_level_c1": "prompts",
-    "voice_prompt_english_level_c2": "prompts",
-    "vocie_prompt": "prompts",
-    # Tools v2 modules
-    "config_tools_nornir": "tools_v2",
-    "display_tools_nornir": "tools_v2",
-    "gns3_create_area_drawing": "tools_v2",
-    "gns3_create_link": "tools_v2",
-    "gns3_create_node": "tools_v2",
-    "gns3_get_node_temp": "tools_v2",
-    "gns3_start_node": "tools_v2",
-    "linux_tools_nornir": "tools_v2",
-    "vpcs_tools_telnetlib3": "tools_v2",
-    # Utils modules
-    "app_config": "utils",
-    "config_db": "utils",
-    "gns3_drawing_utils": "utils",
-    "openai_stt": "utils",
-    "openai_tts": "utils",
-    "parse_tool_content": "utils",
-    # UI model modules
-    "app_ui": "ui_model",
-    "chat": "ui_model",
-    "chat_helpers": "ui_model",
-    "config_manager": "ui_model",
-    "gns3_checker": "ui_model",
-    "help": "ui_model",
-    "llm_providers": "ui_model",
-    "notes": "ui_model",
-    "project_manager_ui": "ui_model",
-    "settings": "ui_model",
-    "sidebar": "ui_model",
-    "update_ui": "ui_model",
-    "updater": "ui_model",
+# Module log file mapping: maps module names to their consolidated log files
+MODULE_LOG_MAPPING: dict[str, str] = {
+    # Core agent modules → gns3_copilot.log
+    "gns3_copilot": "gns3_copilot.log",
+    "checkpoint_utils": "gns3_copilot.log",
+    "model_factory": "gns3_copilot.log",
+    # GNS3 client modules → gns3_client.log
+    "connector_factory": "gns3_client.log",
+    "custom_gns3fy": "gns3_client.log",
+    "gns3_file_index": "gns3_client.log",
+    "gns3_create_drawing": "gns3_client.log",
+    "gns3_delete_drawing": "gns3_client.log",
+    "gns3_get_drawings": "gns3_client.log",
+    "gns3_get_nodes": "gns3_client.log",
+    "gns3_project_create": "gns3_client.log",
+    "gns3_project_delete": "gns3_client.log",
+    "gns3_project_list_files": "gns3_client.log",
+    "gns3_project_lock": "gns3_client.log",
+    "gns3_project_open": "gns3_client.log",
+    "gns3_project_path": "gns3_client.log",
+    "gns3_project_read_file": "gns3_client.log",
+    "gns3_project_update": "gns3_client.log",
+    "gns3_project_write_file": "gns3_client.log",
+    "gns3_projects_list": "gns3_client.log",
+    "gns3_topology_reader": "gns3_client.log",
+    "gns3_update_drawing": "gns3_client.log",
+    # Tool modules (tools_v2 + public_model) → tools.log
+    "config_tools_nornir": "tools.log",
+    "display_tools_nornir": "tools.log",
+    "gns3_create_area_drawing": "tools.log",
+    "gns3_create_link": "tools.log",
+    "gns3_create_node": "tools.log",
+    "gns3_get_node_temp": "tools.log",
+    "gns3_start_node": "tools.log",
+    "linux_tools_nornir": "tools.log",
+    "vpcs_tools_telnetlib3": "tools.log",
+    "get_gns3_device_port": "tools.log",
+    "gns3_drawing_utils": "tools.log",
+    "openai_stt": "tools.log",
+    "openai_tts": "tools.log",
+    "parse_tool_content": "tools.log",
+    # UI modules (ui_model + prompts) → ui.log
+    "app_ui": "ui.log",
+    "chat": "ui.log",
+    "chat_helpers": "ui.log",
+    "config_manager": "ui.log",
+    "gns3_checker": "ui.log",
+    "help": "ui.log",
+    "llm_providers": "ui.log",
+    "notes": "ui.log",
+    "project_manager_ui": "ui.log",
+    "settings": "ui.log",
+    "sidebar": "ui.log",
+    "update_ui": "ui.log",
+    "updater": "ui.log",
+    "base_prompt": "ui.log",
+    "drawing_prompt": "ui.log",
+    "english_level_prompt_a1": "ui.log",
+    "english_level_prompt_a2": "ui.log",
+    "english_level_prompt_b1": "ui.log",
+    "english_level_prompt_b2": "ui.log",
+    "english_level_prompt_c1": "ui.log",
+    "english_level_prompt_c2": "ui.log",
+    "prompt_loader": "ui.log",
+    "title_prompt": "ui.log",
+    "voice_prompt_english_level_a1": "ui.log",
+    "voice_prompt_english_level_a2": "ui.log",
+    "voice_prompt_english_level_b1": "ui.log",
+    "voice_prompt_english_level_b2": "ui.log",
+    "voice_prompt_english_level_c1": "ui.log",
+    "voice_prompt_english_level_c2": "ui.log",
+    "vocie_prompt": "ui.log",
+    # Utility modules → utils.log
+    "app_config": "utils.log",
+    "config_db": "utils.log",
 }
 
 
@@ -97,17 +95,17 @@ def _get_log_path(name: str) -> str:
         name (str): Module name
 
     Returns:
-        str: Log file path
+        str: Log file path (consolidated log file)
     """
     # Check if the module name is in the mapping
-    subdirectory = MODULE_PATH_MAPPING.get(name)
+    log_file = MODULE_LOG_MAPPING.get(name)
 
-    if subdirectory:
-        # Use subdirectory-based path
-        return f"log/{subdirectory}/{name}.log"
+    if log_file:
+        # Use consolidated log file
+        return f"log/{log_file}"
     else:
-        # Use default flat structure
-        return f"log/{name}.log"
+        # Use default (unnamed modules go to gns3_copilot.log)
+        return "log/gns3_copilot.log"
 
 
 def setup_logger(

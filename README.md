@@ -11,174 +11,197 @@
 
 <div align="center">
 
-[🇺🇸 English](README.md) | [🇨🇳 中文](README_ZH.md)
+[🇺🇸 English](README_EN.md) | [🇨🇳 中文](README.md)
 
 </div>
 
 
-An AI-powered network automation assistant designed specifically for GNS3 network simulator, providing intelligent network device management and automated operations.
+一个基于AI的网络自动化助手，专为GNS3网络模拟器设计，提供智能化的网络设备管理和自动化操作。
 
-## Project Overview
+## 项目简介
 
-GNS3 Copilot is a powerful network automation tool that integrates multiple AI models and network automation frameworks. It can interact with users through natural language and perform tasks such as network device configuration, topology management, and fault diagnosis.
+GNS3 Copilot 是一个强大的网络自动化工具，集成了多种AI模型和网络自动化框架，能够通过自然语言与用户交互，执行网络设备配置、拓扑管理和故障诊断等任务。
 
 <img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/Development/docs/media/demo.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
 
-## Installation Guide
+### 核心功能
 
-### Environment Requirements
+- 🤖 **AI驱动的对话界面**: 支持自然语言交互，理解网络自动化需求
+- 🔧 **设备配置管理**: 批量配置网络设备，支持多种厂商设备（目前仅测试了Cisco IOSv镜像）
+- 📊 **拓扑管理**: 自动创建、修改和管理GNS3网络拓扑
+- 🎨 **拓扑可视化**: SVG 绘图支持，自动生成网络拓扑图形，支持区域标注和连接线绘制
+- 🔍 **网络诊断**: 智能网络故障排查和性能监控
+- 🌐 **LLM支持**: 集成DeepSeek AI模型进行自然语言处理
+
+## 安装指南
+
+### 环境要求
 
 - Python 3.10+
-- GNS3 Server (running on http://localhost:3080 or remote host)
-- Supported operating systems: Windows, macOS, Linux
+- GNS3 Server (运行在 http://localhost:3080或远程主机)
+- 支持的操作系统: Windows, macOS, Linux
 
-### Installation Steps
+### 安装步骤
 
-1. **Create virtual environment**
+1. **创建虚拟环境**
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
-# or
+# 或
 venv\Scripts\activate     # Windows
 ```
 
-2. **Install GNS3 Copilot**
+2. **安装 GNS3 Copilot**
 ```bash
 pip install gns3-copilot
 ```
-or
-```bash
-pip install git+https://github.com/yueguobin/gns3-copilot
-```
 
-3. **Start GNS3 Server**
-Ensure GNS3 Server is running and can be accessed via its API interface: `http://x.x.x.x:3080`
+3. **启动 GNS3 Server**
+确保 GNS3 Server 运行并可以通过网络访问其 API 接口：`http://x.x.x.x:3080`
 
-4. **Launch the application**
+4. **启动应用程序**
 ```bash
 gns3-copilot
 ```
 
-## Usage Guide
+## 使用指南
 
-### Configure on Settings Page
+### 配置参数详解
 
-GNS3 Copilot configuration is managed through a Streamlit interface, with all settings persisted in a SQLite database for reliable data storage.
+GNS3 Copilot 通过 Streamlit 界面进行配置管理，所有设置持久化保存在 SQLite 数据库中，提供可靠的数据存储。
 
-#### 🔧 Main Configuration Content
+#### 🔧 主要配置内容
 
-##### 1. GNS3 Server Configuration
-- **GNS3 Server Host**: GNS3 server host address (e.g., 127.0.0.1)
-- **GNS3 Server URL**: Complete GNS3 server URL (e.g., http://127.0.0.1:3080)
-- **API Version**: GNS3 API version (supports v2 and v3)
-- **GNS3 Server Username**: GNS3 server username (required only for API v3)
-- **GNS3 Server Password**: GNS3 server password (required only for API v3)
+##### 1. GNS3 服务器配置
+- **GNS3 Server Host**: GNS3 服务器主机地址（如：127.0.0.1）
+- **GNS3 Server URL**: GNS3 服务器完整 URL（如：http://127.0.0.1:3080）
+- **API Version**: GNS3 API 版本（支持 v2 和 v3）
+- **GNS3 Server Username**: GNS3 服务器用户名（仅 API v3 需要）
+- **GNS3 Server Password**: GNS3 服务器密码（仅 API v3 需要）
 
-##### 2. LLM Model Configuration
+##### 2. LLM 模型配置
 
-**🌟 Recommended Models:**
-- **Best:** `deepseek-chat` (via DeepSeek API) or `deepseek/deepseek-v3.2` (via OpenRouter)
-- **Other Recommended:** `x-ai/grok-3`, `anthropic/claude-sonnet-4`, `z-ai/glm-4.7`
+**🌟 推荐模型：**
+- **最佳选择：** `deepseek-chat`（通过 DeepSeek API）或 `deepseek/deepseek-v3.2`（通过 OpenRouter）
+- **其他推荐：** `x-ai/grok-3`、`anthropic/claude-sonnet-4`、`z-ai/glm-4.7`
 
-**Note:** These models have been tested and verified to provide excellent performance for network automation tasks.
+**注意：** 这些模型已经过测试验证，在网络自动化任务中表现优异。
 
-- **Model Provider**: Model provider (supports: openai, anthropic, deepseek, xai, openrouter, etc.)
-- **Model Name**: Specific model name (e.g., deepseek-chat, gpt-4o-mini, etc.)
-- **Model API Key**: Model API key
-- **Base URL**: Base URL for model service (required when using third-party platforms like OpenRouter)
-- **Temperature**: Model temperature parameter (controls output randomness, range 0.0-1.0)
+- **Model Provider**: 模型提供商（支持：openai, anthropic, deepseek, xai, openrouter 等）
+- **Model Name**: 具体模型名称（如：deepseek-chat, gpt-4o-mini 等）
+- **Model API Key**: 模型 API 密钥
+- **Base URL**: 模型服务的基础 URL（使用 OpenRouter 等第三方平台时必需）
+- **Temperature**: 模型温度参数（控制输出随机性，范围 0.0-1.0）
 
-##### 3. Calibre & Reading Settings
-- **Calibre Server URL**: URL for Calibre Content Server (e.g., http://localhost:8080)
-  - Start Calibre Content Server via Calibre GUI: Preferences → Sharing over the net → Start Server
-  - Or start from command line: `calibre-server --port 8080`
+##### 3. Calibre 与阅读设置
+- **Calibre Server URL**: Calibre 内容服务器 URL（如：http://localhost:8080）
+  - 通过 Calibre GUI 启动：首选项 → 网络共享 → 启动服务器
+  - 或通过命令行启动：`calibre-server --port 8080`
 
-##### 4. Other Settings
-- **Linux Console Username**: Linux console username (for Debian devices in GNS3)
-- **Linux Console Password**: Linux console password
+##### 4. 其他设置
+- **Linux Console Username**: Linux 控制台用户名（用于 GNS3 中的 Debian 设备）
+- **Linux Console Password**: Linux 控制台密码
 
-## 📚 Reading & Notes
+## 📚 阅读与笔记
 
-GNS3 Copilot includes a dedicated reading interface integrated with Calibre Content Server:
+GNS3 Copilot 集成了 Calibre 内容服务器，提供专门的阅读界面：
 
-- **Calibre Ebook Viewer**: Embedded iframe viewer to access and read ebooks from your Calibre library
-- **Multi-Note Management**: Create, select, and delete reading notes for organizing your thoughts
-- **Markdown Notes**: All notes are saved as Markdown files with download functionality
-- **🤖 AI-Powered Note Organization**: Use AI to automatically refine and organize your notes
-  - Click the "AI Organize" button to let the AI format and structure your notes
-  - Compare original vs organized content side-by-side before accepting
-  - Reorganize as needed until satisfied with the result
+- **Calibre 电子书查看器**：嵌入式 iframe 查看器，可直接访问和阅读 Calibre 电子书库中的书籍
+- **多笔记管理**：创建、选择和删除阅读笔记，方便整理您的想法
+- **Markdown 笔记**：所有笔记均以 Markdown 格式保存，支持下载功能
+- **🤖 AI 智能笔记整理**：使用 AI 自动润色和整理您的笔记
+  - 点击 "AI Organize" 按钮，让 AI 自动格式化和结构化您的笔记
+  - 侧边对比原始内容与整理后的内容，确认前可预览
+  - 可反复重新整理，直到满意为止
 
-To access the reading interface:
-1. Configure Calibre Server URL in Settings
-2. Start Calibre Content Server (port 8080 by default)
-3. Navigate to the Reading page in the application
-
+访问阅读界面的步骤：
+1. 在设置中配置 Calibre 服务器 URL
+2. 启动 Calibre 内容服务器（默认端口 8080）
+3. 在应用中导航到阅读页面
 
 <img src="https://raw.githubusercontent.com/yueguobin/gns3-copilot/refs/heads/Development/docs/media/reading_and_notes.gif" alt="GNS3 Copilot Function demonstration" width="1280"/>
 
-## Documentation
 
-See [docs/](docs/) directory for detailed documentation including user guides, development guides, and technical documentation.
+## 文档
 
-## 🤝 Contributing
+详细文档请参见 [docs/](docs/) 目录，包括用户指南、开发指南和技术文档。
 
-We welcome contributions from the community! To keep the project stable, please follow our branching strategy:
+## 🤝 参与贡献
 
-- **Target Branch**: Always submit your Pull Requests to the `Development` branch (not `master`).
+我们非常欢迎来自社区的贡献！为了保障项目代码的稳定性，请遵循以下分支管理策略：
 
-- **Feature Branches**: Create a new branch for each feature or bug fix: `git checkout -b feature/your-feature-name Development`.
+- 目标分支：请始终将您的 Pull Request (PR) 提交至 Development 分支（切勿直接提交至 master）。
 
-- **Workflow**: Fork -> Branch -> Commit -> Push -> Pull Request to `Development`.
+- 功能分支：为每个新功能或修复创建独立分支：git checkout -b feature/您的功能名称 Development。
 
-## 🧠 Practical Insights
+- 协作流程：Fork 仓库 -> 创建分支 -> 提交改动 -> 推送代码 -> 发起指向 Development 分支的 Pull Request。
 
-From our extensive testing with gns3-copilot, here are some hard-earned lessons on how to effectively use AI as your network co-pilot:
+## 实战经验
 
-- **The Power of "Why", Not Just "How"**: Don't just ask for the config. Ask the AI to build a Diagnostic Tree. It's a 24/7 mentor that never gets tired of your "Active" BGP status.
+在开发和使用 gns3-copilot 的过程中，我们发现 AI 接入网络仿真不仅仅是技术对接，更是一种思维方式的转变。以下是我们在实验室总结出的几条"金律"：
 
-- **Mind the Gap (Vendor Specifics)**: While LLMs excel at standard RFC protocols (OSPF, BGP), they might hallucinate when it comes to Proprietary Protocols or bleeding-edge features. Always verify vendor-specific syntax.
+1. **把它当成"陪练"，而不是"代练"**
 
-- **Modular Approach for Complex Topologies**: For networks with 20+ nodes, break down your requests. AI works best when focusing on specific segments rather than trying to memorize the entire routing table at once.
+    **不要**直接问："帮我把 OSPF 调通"。
 
-- **Simulation != Reality**: GNS3 is a perfect sandbox, but it doesn't simulate faulty transceivers or hardware bugs. Use the Copilot to master logic, but keep your hands on the "real world" troubleshooting tools.
+    **尝试问**： "我的 OSPF 邻居卡在 Exstart 状态，帮我梳理一下可能的排查思路？"
 
-## Security Considerations
+    **理由**： AI 最大的价值在于它不厌其烦的** 7x24 引导能力**。通过让它提供"故障树"，你自己动手验证，学习效率会提高数倍。
 
-1. **API Key Protection**:
-   - API keys are stored in SQLite database (currently in plaintext)
-   - Regularly rotate API keys
-   - Use principle of least privilege
-   - Do not commit the database file to version control
+2. **警惕"厂商私有协议"与"版本幻觉"**
+   
+    AI 是基于公开语料训练的。对于标准的 RFC 协议（OSPF, BGP）它非常强；但对于某些厂商的**私有协议**或**最新版本特性**，它可能会产生"幻觉"。
 
-2. **Database Security**:
-   - **Important**: The database currently stores passwords and API keys in plaintext
-   - The configuration database is stored locally on your machine
-   - Ensure proper file permissions are set on the database directory
-   - Backup the database regularly to prevent data loss
-   - Restrict access to the database file to authorized users only
+   ** 建议**： 凡是涉及到具体厂商的特殊命令，务必查阅官方文档进行二次确认。
 
-3. **Environment Security**:
-   - Run GNS3 Copilot in a trusted environment
-   - Consider using encrypted filesystems for storing sensitive data
-   - Be cautious when sharing database backups
+3. **复杂拓扑的"记忆瓶颈"**
 
-## License
+    当拓扑超过 20 个节点时，LLM 可能会出现"顾头不顾尾"的情况，给出前后矛盾的建议。
 
-This project uses MIT License - see [LICENSE](LICENSE) file for details.
+    **最佳实践**： 采用**模块化思维**。先让 Copilot 辅助你搞定一个区域（Area）或一个自治系统（AS），再进行全局联调。
 
-## Acknowledgements
+4. **模拟器 vs. 真实世界**
+   
+    记住：GNS3 模拟不出光纤弯折、硬件坏道或真实的 CPU 瓶颈。
 
-This project was inspired by the following resources, which provided the foundation for Python programming, network automation, and AI applications:
+    AI 可能会给出逻辑上完美的建议，但在物理现实中可能行不通。**验证、抓包、再验证**，是唯一的准则。
 
-- **《网络工程师的 Python 之路》** - Network engineering automation with Python
-- **《网络工程师的 AI 之路》** - AI applications for network engineering
+## 安全注意事项
 
-Special thanks to these resources for their technical inspiration and guidance.
+**API密钥保护**:
+   - API 密钥存储在 SQLite 数据库中（当前为明文存储）
+   - 定期轮换API密钥
+   - 使用最小权限原则
+   - 不要将数据库文件提交到版本控制
 
-## Contact
+**数据库安全**:
+   - **重要**: 数据库当前以明文形式存储密码和 API 密钥
+   - 配置数据库存储在本地机器上
+   - 确保数据库目录设置适当的文件权限
+   - 定期备份数据库以防数据丢失
+   - 限制对数据库文件的访问，仅允许授权用户
 
-- Project Homepage: https://github.com/yueguobin/gns3-copilot
-- Issue Reporting: https://github.com/yueguobin/gns3-copilot/issues
+**环境安全**:
+   - 在受信任的环境中运行 GNS3 Copilot
+   - 考虑使用加密文件系统存储敏感数据
+   - 共享数据库备份时需谨慎
+
+## 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 致谢
+
+本项目受到以下资源的启发，它们为 Python 编程、网络自动化和 AI 应用提供了重要的技术基础：
+
+- **《网络工程师的 Python 之路》** - 网络工程师 Python 自动化技术
+- **《网络工程师的 AI 之路》** - 网络工程师 AI 应用技术
+
+特别感谢这些资源提供的技术启发和指导。
+
+## 联系方式
+
+- 项目主页: https://github.com/yueguobin/gns3-copilot
+- 问题反馈: https://github.com/yueguobin/gns3-copilot/issues
 
 ---
