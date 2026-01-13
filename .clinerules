@@ -16,8 +16,10 @@
 - AI 驱动的对话界面（自然语言交互）
 - 设备配置管理（多厂商设备批量配置）
 - 拓扑管理（创建、修改和管理 GNS3 网络拓扑）
+- 绘图管理（创建、更新和删除 GNS3 绘图）
 - 网络诊断（智能故障排查和性能监控）
 - 语音交互（TTS 文字转语音和 STT 语音转文字）
+- 笔记功能（阅读和笔记管理）
 
 ---
 
@@ -28,6 +30,7 @@
 - `chat.py` - 处理用户消息流和响应显示的聊天界面
 - `settings.py` - LLM、GNS3 服务器及其他设置的系统配置页面
 - `help.py` - 帮助文档页面
+- `reading.py` - 阅读/笔记功能页面
 - `sidebar.py` - 侧边栏导航和项目选择 UI
 - `utils/app_ui.py` - UI 初始化和页面路由
 - `utils/chat_helpers.py` - 聊天辅助函数（消息格式化、更新等）
@@ -37,8 +40,10 @@
 - `utils/project_manager_ui.py` - 项目管理 UI 组件
 - `utils/update_ui.py` - UI 更新逻辑
 - `utils/updater.py` - 应用更新检查
-- `utils/translations/` - 国际化翻译目录
-- `styles/main.css` - 界面样式
+- `utils/iframe_viewer.py` - iframe 查看器组件
+- `utils/notes_manager.py` - 笔记管理器
+- `utils/README.md` - 工具说明文档
+- `styles/` - 界面样式目录
 
 ### 2. src/gns3_copilot/agent/ - LangGraph 代理框架
 负责意图识别、工具调用和对话管理的核心 AI 代理
@@ -48,6 +53,7 @@
   - 集成 SQLite 检查点实现对话状态持久化
   - 实现 should_continue 路由逻辑
 - `checkpoint_utils.py` - 状态持久化的检查点实用函数
+- `model_factory.py` - LLM 模型工厂类（用于创建不同提供商的 LLM 实例）
 
 ### 3. src/gns3_copilot/tools_v2/ - 工具集成层
 定义供 LangGraph 代理调用的各种网络自动化工具
@@ -57,6 +63,7 @@
 - `vpcs_tools_telnetlib3.py` - VPCS 虚拟 PC 工具（通过 Telnetlib3）
 - `gns3_create_node.py` - 创建 GNS3 节点
 - `gns3_create_link.py` - 创建 GNS3 链路连接
+- `gns3_create_area_drawing.py` - 创建 GNS3 区域绘图
 - `gns3_start_node.py` - 启动 GNS3 节点
 - `gns3_get_node_temp.py` - 获取可用的 GNS3 节点模板
 
@@ -67,33 +74,50 @@
 - `gns3_file_index.py` - GNS3 项目文件索引工具
 - `gns3_projects_list.py` - 项目列表管理
 - `gns3_topology_reader.py` - 拓扑信息读取和分析
+- `gns3_get_nodes.py` - 获取 GNS3 节点信息
+- `gns3_create_drawing.py` - 创建 GNS3 绘图
+- `gns3_delete_drawing.py` - 删除 GNS3 绘图
+- `gns3_get_drawings.py` - 获取 GNS3 绘图列表
+- `gns3_update_drawing.py` - 更新 GNS3 绘图
 - `gns3_project_create.py` - 创建新的 GNS3 项目
 - `gns3_project_delete.py` - 删除 GNS3 项目
 - `gns3_project_open.py` - 打开现有的 GNS3 项目
 - `gns3_project_path.py` - 获取 GNS3 项目路径
 - `gns3_project_update.py` - 更新 GNS3 项目元数据
+- `gns3_project_lock.py` - GNS3 项目锁定管理
 - `gns3_project_list_files.py` - 列出 GNS3 项目中的文件
 - `gns3_project_read_file.py` - 从 GNS3 项目读取文件
 - `gns3_project_write_file.py` - 向 GNS3 项目写入文件
 
-### 5. src/gns3_copilot/public_model/ - 公共模型层
+### 5. src/gns3_copilot/utils/ - 公共模型层
 公共模型和实用函数
+- `app_config.py` - 应用配置管理
+- `config_db.py` - 配置数据库管理
 - `openai_tts.py` - 文字转语音（TTS）功能
 - `openai_stt.py` - 语音转文字（STT）功能
 - `parse_tool_content.py` - 工具执行结果解析
 - `get_gns3_device_port.py` - 获取 GNS3 设备端口信息
+- `gns3_drawing_utils.py` - GNS3 绘图工具函数
 
 ### 6. src/gns3_copilot/prompts/ - 提示词模板
 支持多种语言和熟练度级别的 LLM 提示词管理
 - `base_prompt.py` - 基础提示词模板
 - `prompt_loader.py` - 提示词加载器实用函数
 - `title_prompt.py` - 对话标题生成提示词
+- `drawing_prompt.py` - 绘图相关提示词
+- `linux_specialist_prompt.py` - Linux 专家提示词
+- `notes_prompt.py` - 笔记功能提示词
 - `english_level_prompt_*.py` - 英语熟练度级别提示词（A1-C2）
 - `voice_prompt_*.py` - 不同英语级别的语音相关提示词
 - `vocie_prompt.py` - 语音提示词（旧命名）
+- `specialized/` - 专业化提示词目录
 
 ### 7. src/gns3_copilot/log_config/ - 日志配置
 - `logging_config.py` - 统一日志配置
+
+### 8. 应用入口文件
+- `src/gns3_copilot/app.py` - Streamlit 应用主入口
+- `src/gns3_copilot/main.py` - 程序主入口
 
 ---
 
