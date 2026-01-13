@@ -17,8 +17,12 @@ from datetime import datetime
 import streamlit as st
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from gns3_copilot.agent.model_factory import create_note_organizer_model
+from gns3_copilot.agent.model_factory import (
+    create_experiment_planner_model,
+    create_note_organizer_model,
+)
 from gns3_copilot.log_config import setup_logger
+from gns3_copilot.prompts.experiment_prompt import SYSTEM_PROMPT as EXPERIMENT_PROMPT
 from gns3_copilot.prompts.notes_prompt import SYSTEM_PROMPT
 from gns3_copilot.utils import get_config
 
@@ -434,6 +438,176 @@ def auto_save_note() -> None:
             logger.debug("Auto-saved note: %s", st.session_state.current_note_filename)
 
 
+def generate_experiment_plan(note_content: str) -> str:
+    """
+    Use LLM to generate GNS3 experiment plan from note content.
+
+    Args:
+        note_content: The note content to analyze for experiment design.
+
+    Returns:
+        The generated experiment plan, or empty string if generation fails.
+    """
+    if not note_content or not note_content.strip():
+        logger.warning("Empty note content, skipping experiment planning")
+        return ""
+
+    try:
+        logger.info("Starting AI experiment planning")
+
+        # Create experiment planner model
+        model = create_experiment_planner_model()
+
+        # Prepare messages with note content
+        messages = [
+            SystemMessage(content=EXPERIMENT_PROMPT),
+            HumanMessage(content=note_content),
+        ]
+
+        # Show loading indicator and invoke model
+        st.toast("AI is planning your experiment...", icon="🧪")
+        result = model.invoke(messages)
+
+        # Get content from result
+        experiment_plan: str = getattr(result, "content", "")
+        if not isinstance(experiment_plan, str):
+            experiment_plan = str(experiment_plan)
+
+        # Validate the result
+        if not experiment_plan or not experiment_plan.strip():
+            logger.error("Invalid response from LLM")
+            st.error("Failed to generate experiment plan: Invalid response from AI")
+            return ""
+
+        logger.info("AI experiment planning completed successfully")
+        return experiment_plan
+
+    except Exception as e:
+        logger.error("Failed to generate experiment plan with AI: %s", e)
+        st.error(f"Failed to generate experiment plan: {e}")
+        return ""
+
+
+def render_experiment_planner_button() -> None:
+    """
+    Render experiment planner button and expander for GNS3 experiment planning.
+
+    This function provides a button that triggers AI experiment planning.
+    When clicked, it generates a GNS3 lab experiment plan based on
+    the current note content and displays the result in an expander
+    where the user can edit, save, or proceed to implement the experiment.
+    """
+    if not st.session_state.current_note_filename:
+        return
+
+    # Experiment Planner button
+    if st.button(
+        ":material/account_tree: Experiment Plan",
+        key="experiment_planner_button",
+        help="Generate a GNS3 lab experiment plan from your note",
+        use_container_width=True,
+    ):
+        # Set a flag to show the experiment planner expander
+        st.session_state.show_experiment_planner = True
+        st.rerun()
+
+    # Show Experiment Planner expander if flag is set
+    if st.session_state.get("show_experiment_planner", False):
+        with st.expander("🧪 GNS3 Experiment Planning", expanded=True):
+            # Get current note content
+            note_content = st.session_state.current_note_content
+
+            # Store experiment plan in session state if not already done
+            if "experiment_plan" not in st.session_state:
+                experiment_plan = generate_experiment_plan(note_content)
+                st.session_state.experiment_plan = experiment_plan
+            else:
+                experiment_plan = st.session_state.experiment_plan
+
+            # Display editable experiment plan
+            st.markdown("**Experiment Plan (Editable):**")
+            edited_plan = st.text_area(
+                "Experiment Plan",
+                value=experiment_plan,
+                height=500,
+                key="experiment_plan_editor",
+                label_visibility="collapsed",
+                help="Edit the experiment plan as needed",
+            )
+
+            # Action buttons
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                if st.button(
+                    "Regenerate",
+                    key="experiment_regenerate_button",
+                    use_container_width=True,
+                ):
+                    # Clear experiment plan to trigger regeneration
+                    if "experiment_plan" in st.session_state:
+                        del st.session_state.experiment_plan
+                    st.rerun()
+
+            with col2:
+                if st.button(
+                    "Save as Note",
+                    key="experiment_save_button",
+                    use_container_width=True,
+                ):
+                    # Generate new note filename
+                    base_name = st.session_state.current_note_filename.replace(
+                        ".md", ""
+                    )
+                    plan_filename = f"{base_name}_plan.md"
+
+                    # Add timestamp if file exists
+                    if os.path.exists(
+                        os.path.join(ensure_notes_directory(), plan_filename)
+                    ):
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        plan_filename = f"{base_name}_plan_{timestamp}.md"
+
+                    # Save experiment plan as new note
+                    if save_note_content(plan_filename, edited_plan):
+                        st.success(f"Experiment plan saved as `{plan_filename}`!")
+                        # Clear experiment planner state
+                        st.session_state.show_experiment_planner = False
+                        if "experiment_plan" in st.session_state:
+                            del st.session_state.experiment_plan
+                        st.rerun()
+                    else:
+                        st.error("Failed to save experiment plan")
+
+            with col3:
+                if st.button(
+                    "Go to Experiment",
+                    key="experiment_go_button",
+                    type="primary",
+                    use_container_width=True,
+                ):
+                    # Store the experiment plan in session state for chat page to use
+                    st.session_state.pending_experiment_plan = edited_plan
+                    # Clear experiment planner state
+                    st.session_state.show_experiment_planner = False
+                    if "experiment_plan" in st.session_state:
+                        del st.session_state.experiment_plan
+                    st.success("Experiment plan saved! Navigating to chat page...")
+                    st.rerun()
+
+            with col4:
+                if st.button(
+                    "Cancel",
+                    key="experiment_cancel_button",
+                    use_container_width=True,
+                ):
+                    # Clear experiment planner state
+                    st.session_state.show_experiment_planner = False
+                    if "experiment_plan" in st.session_state:
+                        del st.session_state.experiment_plan
+                    st.rerun()
+
+
 def render_notes_editor(
     container_height: int | None = None,
     show_title: bool = True,
@@ -483,8 +657,12 @@ def render_notes_editor(
             # Auto-save indicator
             st.caption(":material/check_circle: Auto-save enabled")
 
-            # AI Organize button
-            render_ai_organize_button()
+            # AI Organize and Experiment Plan buttons
+            col1, col2 = st.columns(2)
+            with col1:
+                render_ai_organize_button()
+            with col2:
+                render_experiment_planner_button()
 
             # Text area for note content (subtract 100px from CONTAINER_HEIGHT for UI elements)
             editor_height = container_height - 150
