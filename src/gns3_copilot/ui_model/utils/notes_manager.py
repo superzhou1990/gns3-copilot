@@ -13,13 +13,19 @@ This module provides a comprehensive notes management system with:
 
 import os
 from datetime import datetime
+from typing import Any
 
 import streamlit as st
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from gns3_copilot.agent.model_factory import create_note_organizer_model
+from gns3_copilot.agent.model_factory import (
+    create_experiment_planner_model,
+    create_note_organizer_model,
+)
 from gns3_copilot.log_config import setup_logger
+from gns3_copilot.prompts.experiment_prompt import SYSTEM_PROMPT as EXPERIMENT_PROMPT
 from gns3_copilot.prompts.notes_prompt import SYSTEM_PROMPT
+from gns3_copilot.utils import get_config
 
 logger = setup_logger("notes_manager")
 
@@ -32,6 +38,9 @@ if "current_note_content" not in st.session_state:
 
 if "new_note_name" not in st.session_state:
     st.session_state.new_note_name = ""
+
+if "active_tab" not in st.session_state:
+    st.session_state.active_tab = "note"  # Options: "note", "organize", "experiment"
 
 
 def get_notes_directory() -> str:
@@ -285,15 +294,16 @@ def _save_organized_note(
 
     Args:
         filename: Name of the note file.
-        editor_key: Session state key for the editor.
+        editor_key: Session state key for the editor (not used to avoid widget state modification).
         organized_content: Organized note content to save.
 
     Returns:
         True if saved successfully, False otherwise.
     """
-    # Update both current_note_content and editor's session state
+    # Update current_note_content (used as default value for text_area)
+    # Note: We cannot directly modify st.session_state[editor_key] as it's a widget key
+    # The text_area will use current_note_content as its default value on next render
     st.session_state.current_note_content = organized_content
-    st.session_state[editor_key] = organized_content
     return save_note_content(filename, organized_content)
 
 
@@ -315,8 +325,8 @@ def render_ai_organize_button() -> None:
         help="Use AI to organize and format your note",
         use_container_width=True,
     ):
-        # Set a flag to show the organizer expander
-        st.session_state.show_ai_organizer = True
+        # Switch to organize tab
+        st.session_state.active_tab = "organize"
         st.rerun()
 
     # Show AI Organizer expander if flag is set
@@ -433,6 +443,199 @@ def auto_save_note() -> None:
             logger.debug("Auto-saved note: %s", st.session_state.current_note_filename)
 
 
+def generate_experiment_plan_stream(note_content: str, placeholder: Any) -> str:
+    """
+    Use LLM to generate GNS3 experiment plan with streaming output.
+
+    Args:
+        note_content: The note content to analyze for experiment design.
+        placeholder: Streamlit placeholder for real-time display.
+
+    Returns:
+        The complete generated experiment plan, or empty string if generation fails.
+    """
+    if not note_content or not note_content.strip():
+        logger.warning("Empty note content, skipping experiment planning")
+        return ""
+
+    try:
+        logger.info("Starting AI experiment planning with streaming")
+
+        # Create experiment planner model
+        model = create_experiment_planner_model()
+
+        # Prepare messages with note content
+        messages = [
+            SystemMessage(content=EXPERIMENT_PROMPT),
+            HumanMessage(content=note_content),
+        ]
+
+        # Show loading indicator in placeholder
+        with placeholder:
+            st.info("🧪 AI is planning your experiment...")
+            with st.spinner("Generating experiment plan..."):
+                pass
+
+        # Stream model output and display in real-time
+        current_text = ""
+        with placeholder:
+            st.empty()  # Clear the loading indicator
+
+        for chunk in model.stream(messages):
+            if hasattr(chunk, "content") and chunk.content:
+                current_text += chunk.content
+                # Update placeholder with current text
+                placeholder.markdown(current_text)
+
+        # Validate the result
+        if not current_text or not current_text.strip():
+            logger.error("Invalid response from LLM")
+            st.error("Failed to generate experiment plan: Invalid response from AI")
+            return ""
+
+        logger.info("AI experiment planning completed successfully")
+        return current_text
+
+    except Exception as e:
+        logger.error("Failed to generate experiment plan with AI: %s", e)
+        st.error(f"Failed to generate experiment plan: {e}")
+        return ""
+
+
+def _sync_experiment_plan() -> None:
+    """Sync edited experiment plan back to session state."""
+    st.session_state.experiment_plan = st.session_state.experiment_plan_editor
+
+
+def render_experiment_planner_button() -> None:
+    """
+    Render experiment planner button and expander for GNS3 experiment planning.
+
+    This function provides a button that triggers AI experiment planning.
+    When clicked, it generates a GNS3 lab experiment plan based on
+    the current note content and displays the result in an expander
+    where the user can edit, save, or proceed to implement the experiment.
+    """
+    if not st.session_state.current_note_filename:
+        return
+
+    # Experiment Planner button
+    if st.button(
+        ":material/account_tree: Experiment Plan",
+        key="experiment_planner_button",
+        help="Generate a GNS3 lab experiment plan from your note",
+        use_container_width=True,
+    ):
+        # Switch to experiment tab
+        st.session_state.active_tab = "experiment"
+        st.rerun()
+
+    # Show Experiment Planner expander if flag is set
+    if st.session_state.get("show_experiment_planner", False):
+        with st.expander("🧪 GNS3 Experiment Planning", expanded=True):
+            # Get current note content
+            note_content = st.session_state.current_note_content
+
+            # Create placeholder for streaming output
+            output_placeholder = st.empty()
+
+            # Store experiment plan in session state if not already done
+            if "experiment_plan" not in st.session_state:
+                # Generate with streaming output
+                experiment_plan = generate_experiment_plan_stream(
+                    note_content, output_placeholder
+                )
+                st.session_state.experiment_plan = experiment_plan
+            else:
+                # Display existing plan
+                output_placeholder.markdown(st.session_state.experiment_plan)
+                experiment_plan = st.session_state.experiment_plan
+
+            # Display editable experiment plan
+            st.markdown("**Experiment Plan (Editable):**")
+            edited_plan = st.text_area(
+                "Experiment Plan",
+                value=experiment_plan,
+                height=500,
+                key="experiment_plan_editor",
+                label_visibility="collapsed",
+                help="Edit the experiment plan as needed",
+                on_change=_sync_experiment_plan,
+            )
+
+            # Action buttons
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                if st.button(
+                    "Regenerate",
+                    key="experiment_regenerate_button",
+                    use_container_width=True,
+                ):
+                    # Clear experiment plan to trigger regeneration
+                    if "experiment_plan" in st.session_state:
+                        del st.session_state.experiment_plan
+                    st.rerun()
+
+            with col2:
+                if st.button(
+                    "Save as Note",
+                    key="experiment_save_button",
+                    use_container_width=True,
+                ):
+                    # Generate new note filename
+                    base_name = st.session_state.current_note_filename.replace(
+                        ".md", ""
+                    )
+                    plan_filename = f"{base_name}_plan.md"
+
+                    # Add timestamp if file exists
+                    if os.path.exists(
+                        os.path.join(ensure_notes_directory(), plan_filename)
+                    ):
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        plan_filename = f"{base_name}_plan_{timestamp}.md"
+
+                    # Save experiment plan as new note
+                    if save_note_content(plan_filename, edited_plan):
+                        st.success(f"Experiment plan saved as `{plan_filename}`!")
+                        # Clear experiment planner state
+                        st.session_state.show_experiment_planner = False
+                        if "experiment_plan" in st.session_state:
+                            del st.session_state.experiment_plan
+                        st.rerun()
+                    else:
+                        st.error("Failed to save experiment plan")
+
+            with col3:
+                if st.button(
+                    "Go to Experiment",
+                    key="experiment_go_button",
+                    type="primary",
+                    use_container_width=True,
+                ):
+                    # Store the experiment plan in session state for chat page to use
+                    st.session_state.pending_experiment_plan = edited_plan
+                    # Clear experiment planner state
+                    st.session_state.show_experiment_planner = False
+                    if "experiment_plan" in st.session_state:
+                        del st.session_state.experiment_plan
+                    st.success("Experiment plan saved! Navigating to chat page...")
+                    st.rerun()
+
+            with col4:
+                if st.button(
+                    "Cancel",
+                    key="experiment_cancel_button",
+                    use_container_width=True,
+                ):
+                    # Clear experiment planner state
+                    st.session_state.show_experiment_planner = False
+                    if "experiment_plan" in st.session_state:
+                        del st.session_state.experiment_plan
+                    st.rerun()
+
+
 def render_notes_editor(
     container_height: int | None = None,
     show_title: bool = True,
@@ -458,9 +661,12 @@ def render_notes_editor(
         st.session_state.rerun = False
         st.rerun()
 
-    # Get container height
+    # Get container height from database
     if container_height is None:
-        container_height = st.session_state.get("CONTAINER_HEIGHT", 1000)
+        try:
+            container_height = int(get_config("CONTAINER_HEIGHT", 1000))
+        except (ValueError, TypeError):
+            container_height = 1000
 
     # Get list of note files
     note_files = list_note_files()
@@ -479,25 +685,267 @@ def render_notes_editor(
             # Auto-save indicator
             st.caption(":material/check_circle: Auto-save enabled")
 
-            # AI Organize button
-            render_ai_organize_button()
+            # Tab navigation for different views
+            tab_note, tab_organize, tab_experiment = st.tabs(
+                [
+                    ":material/description: Note",
+                    ":material/auto_fix_high: AI Organize",
+                    ":material/account_tree: Experiment Plan",
+                ]
+            )
 
-            # Text area for note content (subtract 100px from CONTAINER_HEIGHT for UI elements)
-            editor_height = container_height - 150
-            editor_key = (
-                f"note_editor_{st.session_state.current_note_filename}"
-                if st.session_state.current_note_filename
-                else "note_editor_empty"
-            )
-            st.text_area(
-                "Note Content",
-                value=st.session_state.current_note_content,
-                height=editor_height,
-                key=editor_key,
-                label_visibility="collapsed",
-                help="Write your notes here in Markdown format",
-                on_change=auto_save_note,
-            )
+            # Tab 1: Note Editor
+            with tab_note:
+                editor_height = container_height - 200
+                editor_key = (
+                    f"note_editor_{st.session_state.current_note_filename}"
+                    if st.session_state.current_note_filename
+                    else "note_editor_empty"
+                )
+                st.text_area(
+                    "Note Content",
+                    value=st.session_state.current_note_content,
+                    height=editor_height,
+                    key=editor_key,
+                    label_visibility="collapsed",
+                    help="Write your notes here in Markdown format",
+                    on_change=auto_save_note,
+                )
+
+            # Tab 2: AI Organize
+            with tab_organize:
+                # Check if organized content exists
+                if "organized_content" not in st.session_state:
+                    # Show initial state with description and generate button
+                    st.markdown("### AI Note Organization")
+                    st.markdown(
+                        "Use AI to organize and format your note. "
+                        "The AI will improve structure, clarity, and readability."
+                    )
+
+                    if st.button(
+                        ":material/auto_fix_high: Organize Note",
+                        key="organize_generate_button",
+                        type="primary",
+                        use_container_width=True,
+                        help="Click to organize your note with AI",
+                    ):
+                        # Generate organized content
+                        editor_key = (
+                            f"note_editor_{st.session_state.current_note_filename}"
+                            if st.session_state.current_note_filename
+                            else "note_editor_empty"
+                        )
+                        original_content = st.session_state.current_note_content
+                        if not original_content or not original_content.strip():
+                            original_content = st.session_state.get(editor_key, "")
+
+                        organized_content = organize_note_content(original_content)
+                        st.session_state.organized_content = organized_content
+                        st.session_state.original_content = original_content
+                        st.rerun()
+                else:
+                    # Show organized content with comparison and actions
+                    editor_key = (
+                        f"note_editor_{st.session_state.current_note_filename}"
+                        if st.session_state.current_note_filename
+                        else "note_editor_empty"
+                    )
+                    organized_content = st.session_state.organized_content
+                    original_content = st.session_state.original_content
+
+                    # Display comparison
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("**Original:**")
+                        st.text_area(
+                            "Original Content",
+                            value=original_content,
+                            height=400,
+                            key="organizer_original_content",
+                            disabled=True,
+                            label_visibility="collapsed",
+                        )
+                    with col2:
+                        st.markdown("**Organized:**")
+                        st.text_area(
+                            "Organized Content",
+                            value=organized_content,
+                            height=400,
+                            key="organizer_organized_content",
+                            label_visibility="collapsed",
+                        )
+
+                    # Action buttons
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        if st.button(
+                            "Reorganize",
+                            key="organizer_reorganize_button",
+                            use_container_width=True,
+                        ):
+                            # Clear organized content to trigger reorganization
+                            if "organized_content" in st.session_state:
+                                del st.session_state.organized_content
+                                del st.session_state.original_content
+                            st.rerun()
+                    with col2:
+                        if st.button(
+                            "Confirm & Apply",
+                            key="organizer_confirm_button",
+                            type="primary",
+                            use_container_width=True,
+                        ):
+                            if _save_organized_note(
+                                st.session_state.current_note_filename,
+                                editor_key,
+                                organized_content,
+                            ):
+                                st.success("Note organized and saved!")
+                                # Clear organizer state
+                                if "organized_content" in st.session_state:
+                                    del st.session_state.organized_content
+                                    del st.session_state.original_content
+                                st.rerun()
+                            else:
+                                st.error("Failed to save organized note")
+                    with col3:
+                        if st.button(
+                            "Cancel",
+                            key="organizer_cancel_button",
+                            use_container_width=True,
+                        ):
+                            # Clear organizer state
+                            if "organized_content" in st.session_state:
+                                del st.session_state.organized_content
+                                del st.session_state.original_content
+                            st.rerun()
+
+            # Tab 3: Experiment Plan
+            with tab_experiment:
+                # Check if experiment plan exists
+                if "experiment_plan" not in st.session_state:
+                    # Show initial state with description and generate button
+                    st.markdown("### GNS3 Experiment Planning")
+                    st.markdown(
+                        "Generate a comprehensive GNS3 lab experiment plan "
+                        "based on your note. The AI will design the topology, "
+                        "node types, and connection details."
+                    )
+
+                    if st.button(
+                        ":material/account_tree: Generate Plan",
+                        key="experiment_generate_button",
+                        type="primary",
+                        use_container_width=True,
+                        help="Click to generate an experiment plan",
+                    ):
+                        # Get current note content
+                        note_content = st.session_state.current_note_content
+
+                        # Create placeholder for streaming output
+                        output_placeholder = st.empty()
+
+                        # Generate with streaming output
+                        experiment_plan = generate_experiment_plan_stream(
+                            note_content, output_placeholder
+                        )
+                        st.session_state.experiment_plan = experiment_plan
+                        st.rerun()
+                else:
+                    # Show existing plan with editing and actions
+                    note_content = st.session_state.current_note_content
+
+                    # Create placeholder for displaying existing plan
+                    output_placeholder = st.empty()
+                    output_placeholder.markdown(st.session_state.experiment_plan)
+                    experiment_plan = st.session_state.experiment_plan
+
+                    # Display editable experiment plan
+                    st.markdown("**Experiment Plan (Editable):**")
+                    edited_plan = st.text_area(
+                        "Experiment Plan",
+                        value=experiment_plan,
+                        height=400,
+                        key="experiment_plan_editor",
+                        label_visibility="collapsed",
+                        help="Edit the experiment plan as needed",
+                        on_change=_sync_experiment_plan,
+                    )
+
+                    # Action buttons
+                    col1, col2, col3, col4 = st.columns(4)
+
+                    with col1:
+                        if st.button(
+                            "Regenerate",
+                            key="experiment_regenerate_button",
+                            use_container_width=True,
+                        ):
+                            # Clear experiment plan to trigger regeneration
+                            if "experiment_plan" in st.session_state:
+                                del st.session_state.experiment_plan
+                            st.rerun()
+
+                    with col2:
+                        if st.button(
+                            "Save as Note",
+                            key="experiment_save_button",
+                            use_container_width=True,
+                        ):
+                            # Generate new note filename
+                            base_name = st.session_state.current_note_filename.replace(
+                                ".md", ""
+                            )
+                            plan_filename = f"{base_name}_plan.md"
+
+                            # Add timestamp if file exists
+                            if os.path.exists(
+                                os.path.join(ensure_notes_directory(), plan_filename)
+                            ):
+                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                plan_filename = f"{base_name}_plan_{timestamp}.md"
+
+                            # Save experiment plan as new note
+                            if save_note_content(plan_filename, edited_plan):
+                                st.success(
+                                    f"Experiment plan saved as `{plan_filename}`!"
+                                )
+                                # Clear experiment planner state
+                                if "experiment_plan" in st.session_state:
+                                    del st.session_state.experiment_plan
+                                st.rerun()
+                            else:
+                                st.error("Failed to save experiment plan")
+
+                    with col3:
+                        if st.button(
+                            "Go to Experiment",
+                            key="experiment_go_button",
+                            type="primary",
+                            use_container_width=True,
+                        ):
+                            # Store the experiment plan in session state for chat page to use
+                            st.session_state.pending_experiment_plan = edited_plan
+                            # Clear experiment planner state
+                            if "experiment_plan" in st.session_state:
+                                del st.session_state.experiment_plan
+                            st.success(
+                                "Experiment plan saved! Navigating to chat page..."
+                            )
+                            st.rerun()
+
+                    with col4:
+                        if st.button(
+                            "Cancel",
+                            key="experiment_cancel_button",
+                            use_container_width=True,
+                        ):
+                            # Clear experiment planner state
+                            if "experiment_plan" in st.session_state:
+                                del st.session_state.experiment_plan
+                            st.rerun()
+
         else:
             st.info("Select or create a note to start editing.")
 

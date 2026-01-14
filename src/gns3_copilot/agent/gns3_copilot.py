@@ -48,7 +48,7 @@ from gns3_copilot.tools_v2 import (
 from gns3_copilot.utils import get_config
 
 # Set up logger for GNS3 Copilot
-logger = setup_logger("gns3_copilot", log_file="gns3_copilot.log")
+logger = setup_logger("gns3_copilot")
 
 # Log loaded LLM model information
 model_name = get_config("MODEL_NAME")

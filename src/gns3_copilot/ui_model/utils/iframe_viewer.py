@@ -7,6 +7,8 @@ embedded in any Streamlit page to display external web content.
 
 import streamlit as st
 
+from gns3_copilot.utils import get_config
+
 
 def render_iframe_viewer(
     url: str | None = None,
@@ -26,9 +28,12 @@ def render_iframe_viewer(
     if url is None:
         url = st.session_state.get("CALIBRE_SERVER_URL", "")
 
-    # Get container height from session state if available
-    if "CONTAINER_HEIGHT" in st.session_state:
-        height = st.session_state["CONTAINER_HEIGHT"]
+    # Get container height from database
+    if height == 1000:  # Use default value as indicator to try loading from database
+        try:
+            height = int(get_config("CONTAINER_HEIGHT", "1000"))
+        except (ValueError, TypeError):
+            height = 1000
 
     # Display title if provided
     if title:

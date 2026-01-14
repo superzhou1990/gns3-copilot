@@ -228,3 +228,53 @@ def create_base_model_with_tools(tools: list[Any]) -> Any:
     """
     base_model = create_base_model()
     return create_model_with_tools(base_model, tools)
+
+
+def create_experiment_planner_model() -> Any:
+    """
+    Create a fresh model instance for experiment planning.
+
+    This creates a model instance suitable for generating GNS3 lab experiment plans.
+    It uses the same configuration as the base model but with a moderate temperature
+    to balance creativity and accuracy in lab design.
+
+    Returns:
+        Any: A new LLM model instance for experiment planning.
+              The actual type depends on the provider.
+
+    Raises:
+        ValueError: If required environment variables are missing or invalid.
+    """
+    env_vars = _load_env_variables()
+
+    logger.info(
+        "Creating experiment planner model: name=%s, provider=%s, base_url=%s, temperature=0.7",
+        env_vars["model_name"],
+        env_vars["model_provider"],
+        env_vars["base_url"] if env_vars["base_url"] else "default",
+    )
+
+    # Validate required fields
+    if not env_vars["model_name"]:
+        raise ValueError("MODEL_NAME environment variable is required")
+
+    if not env_vars["model_provider"]:
+        raise ValueError("MODE_PROVIDER environment variable is required")
+
+    try:
+        model = init_chat_model(
+            env_vars["model_name"],
+            model_provider=env_vars["model_provider"],
+            api_key=env_vars["api_key"],
+            base_url=env_vars["base_url"],
+            temperature="0.7",  # Moderate temperature for balanced creativity and accuracy
+            configurable_fields="any",
+            config_prefix="foo",
+        )
+
+        logger.info("Experiment planner model created successfully")
+        return model
+
+    except Exception as e:
+        logger.error("Failed to create experiment planner model: %s", e)
+        raise RuntimeError(f"Failed to create experiment planner model: {e}") from e
