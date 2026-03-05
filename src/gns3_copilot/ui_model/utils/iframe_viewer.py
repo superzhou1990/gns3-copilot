@@ -1,3 +1,27 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# GNS3-Copilot - AI-powered Network Lab Assistant for GNS3
+#
+# This file is part of GNS3-Copilot project.
+#
+# GNS3-Copilot is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# GNS3-Copilot is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNS3-Copilot. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2025 Guobin Yue
+# Author: Guobin Yue
+#
+# Project Home: https://github.com/yueguobin/gns3-copilot
+#
 """
 Iframe viewer component for embedding external content.
 
@@ -6,6 +30,8 @@ embedded in any Streamlit page to display external web content.
 """
 
 import streamlit as st
+
+from gns3_copilot.utils import get_config
 
 
 def render_iframe_viewer(
@@ -26,9 +52,12 @@ def render_iframe_viewer(
     if url is None:
         url = st.session_state.get("CALIBRE_SERVER_URL", "")
 
-    # Get container height from session state if available
-    if "CONTAINER_HEIGHT" in st.session_state:
-        height = st.session_state["CONTAINER_HEIGHT"]
+    # Get container height from database
+    if height == 1000:  # Use default value as indicator to try loading from database
+        try:
+            height = int(get_config("CONTAINER_HEIGHT", "1000"))
+        except (ValueError, TypeError):
+            height = 1000
 
     # Display title if provided
     if title:

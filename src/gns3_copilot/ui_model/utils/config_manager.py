@@ -1,3 +1,27 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# GNS3-Copilot - AI-powered Network Lab Assistant for GNS3
+#
+# This file is part of GNS3-Copilot project.
+#
+# GNS3-Copilot is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# GNS3-Copilot is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNS3-Copilot. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2025 Guobin Yue
+# Author: Guobin Yue
+#
+# Project Home: https://github.com/yueguobin/gns3-copilot
+#
 """
 Configuration Management Module for GNS3 Copilot.
 
@@ -88,9 +112,6 @@ CONFIG_MAP = {
     # Reading Page Configuration
     "CALIBRE_SERVER_URL": "CALIBRE_SERVER_URL",
     "READING_NOTES_DIR": "READING_NOTES_DIR",
-    # UI Configuration
-    "CONTAINER_HEIGHT": "CONTAINER_HEIGHT",
-    "zoom_scale_topology": "ZOOM_SCALE_TOPOLOGY",
     # Other Settings
     "LANGUAGE": "LANGUAGE",
     "TTS_HTTP_REFERER": "TTS_HTTP_REFERER",
@@ -228,46 +249,6 @@ def load_config() -> None:
                     config_value,
                 )
                 st.session_state[st_key] = 0.0
-            continue
-
-        # Special handling for CONTAINER_HEIGHT (UI setting)
-        if st_key == "CONTAINER_HEIGHT":
-            try:
-                height_int = int(config_value) if config_value else 1200
-                if not (300 <= height_int <= 1500):
-                    logger.debug(
-                        "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
-                        config_value,
-                    )
-                    height_int = 1200
-                st.session_state[st_key] = height_int
-                logger.debug("Loaded config: %s = %s", st_key, height_int)
-            except ValueError:
-                logger.debug(
-                    "Invalid CONTAINER_HEIGHT value: %s, setting to default 1200",
-                    config_value,
-                )
-                st.session_state[st_key] = 1200
-            continue
-
-        # Special handling for zoom_scale_topology (UI setting)
-        if st_key == "zoom_scale_topology":
-            try:
-                zoom_float = float(config_value) if config_value else 0.8
-                if not (0.5 <= zoom_float <= 1.2):
-                    logger.debug(
-                        "Invalid zoom_scale_topology value: %s, setting to default 0.8",
-                        config_value,
-                    )
-                    zoom_float = 0.8
-                st.session_state[st_key] = zoom_float
-                logger.debug("Loaded config: %s = %s", st_key, zoom_float)
-            except ValueError:
-                logger.debug(
-                    "Invalid zoom_scale_topology value: %s, setting to default 0.8",
-                    config_value,
-                )
-                st.session_state[st_key] = 0.8
             continue
 
         # Default handling for string values

@@ -1,3 +1,27 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# GNS3-Copilot - AI-powered Network Lab Assistant for GNS3
+#
+# This file is part of GNS3-Copilot project.
+#
+# GNS3-Copilot is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# GNS3-Copilot is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNS3-Copilot. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2025 Guobin Yue
+# Author: Guobin Yue
+#
+# Project Home: https://github.com/yueguobin/gns3-copilot
+#
 """
 Sidebar component for GNS3 Copilot application.
 
@@ -50,7 +74,8 @@ from gns3_copilot.agent.checkpoint_utils import (
     import_checkpoint_from_file,
 )
 from gns3_copilot.log_config import setup_logger
-from gns3_copilot.ui_model.utils import new_session, save_config
+from gns3_copilot.ui_model.utils import new_session
+from gns3_copilot.utils import get_config, set_config
 
 logger = setup_logger("chat")
 
@@ -73,15 +98,17 @@ def render_sidebar(
         Tuple of (selected_thread_id, title) - can be None if no session is selected
     """
     with st.sidebar:
-        # Initialize sidebar configuration values
-        # Get current container height from session state or default to 900
-        current_height = st.session_state.get("CONTAINER_HEIGHT")
-        if current_height is None or not isinstance(current_height, int):
+        # Initialize sidebar configuration values - read directly from database
+        # Get current container height from database
+        try:
+            current_height = int(get_config("CONTAINER_HEIGHT", "900"))
+        except (ValueError, TypeError):
             current_height = 900
 
-        # Get current zoom scale from session state
-        current_zoom = st.session_state.get("zoom_scale_topology")
-        if current_zoom is None:
+        # Get current zoom scale from database
+        try:
+            current_zoom = float(get_config("ZOOM_SCALE_TOPOLOGY", "0.8"))
+        except (ValueError, TypeError):
             current_zoom = 0.8
 
         with st.expander(":material/settings: Display Settings", expanded=False):
@@ -93,16 +120,18 @@ def render_sidebar(
                 value=current_height,
                 step=50,
                 help="Adjust height for chat and GNS3 view",
+                key="page_height_slider",
             )
 
-            # If height changed, update session state and save to database
+            # If height changed, save directly to database
             if new_height != current_height:
-                st.session_state["CONTAINER_HEIGHT"] = new_height
-                # Save to database using centralized save function
                 try:
-                    save_config()
+                    set_config("CONTAINER_HEIGHT", str(new_height))
+                    logger.debug("Updated CONTAINER_HEIGHT to: %s", new_height)
+                    st.success("Page height updated!")
                 except Exception as e:
                     logger.error("Failed to update CONTAINER_HEIGHT: %s", e)
+                    st.error(f"Failed to update height: {e}")
 
             new_zoom = st.slider(
                 ":material/zoom_in: Zoom Scale",
@@ -111,15 +140,18 @@ def render_sidebar(
                 value=current_zoom,
                 step=0.05,
                 help="Adjust zoom scale for GNS3 topology view",
+                key="zoom_scale_slider",
             )
 
-            # If zoom changed, update session state and save to database
+            # If zoom changed, save directly to database
             if new_zoom != current_zoom:
-                st.session_state["zoom_scale_topology"] = new_zoom
                 try:
-                    save_config()
+                    set_config("ZOOM_SCALE_TOPOLOGY", str(new_zoom))
+                    logger.debug("Updated ZOOM_SCALE_TOPOLOGY to: %s", new_zoom)
+                    st.success("Zoom scale updated!")
                 except Exception as e:
                     logger.error("Failed to update ZOOM_SCALE_TOPOLOGY: %s", e)
+                    st.error(f"Failed to update zoom: {e}")
 
         # st.markdown("---")
 

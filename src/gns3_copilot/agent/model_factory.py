@@ -1,3 +1,28 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# GNS3-Copilot - AI-powered Network Lab Assistant for GNS3
+#
+# This file is part of GNS3-Copilot project.
+#
+# GNS3-Copilot is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# GNS3-Copilot is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNS3-Copilot. If not, see <https://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2025 Guobin Yue
+# Author: Guobin Yue
+#
+# Project Home: https://github.com/yueguobin/gns3-copilot
+#
+
 """
 Model Factory for GNS3 Copilot Agent
 
@@ -228,3 +253,53 @@ def create_base_model_with_tools(tools: list[Any]) -> Any:
     """
     base_model = create_base_model()
     return create_model_with_tools(base_model, tools)
+
+
+def create_experiment_planner_model() -> Any:
+    """
+    Create a fresh model instance for experiment planning.
+
+    This creates a model instance suitable for generating GNS3 lab experiment plans.
+    It uses the same configuration as the base model but with a moderate temperature
+    to balance creativity and accuracy in lab design.
+
+    Returns:
+        Any: A new LLM model instance for experiment planning.
+              The actual type depends on the provider.
+
+    Raises:
+        ValueError: If required environment variables are missing or invalid.
+    """
+    env_vars = _load_env_variables()
+
+    logger.info(
+        "Creating experiment planner model: name=%s, provider=%s, base_url=%s, temperature=0.7",
+        env_vars["model_name"],
+        env_vars["model_provider"],
+        env_vars["base_url"] if env_vars["base_url"] else "default",
+    )
+
+    # Validate required fields
+    if not env_vars["model_name"]:
+        raise ValueError("MODEL_NAME environment variable is required")
+
+    if not env_vars["model_provider"]:
+        raise ValueError("MODE_PROVIDER environment variable is required")
+
+    try:
+        model = init_chat_model(
+            env_vars["model_name"],
+            model_provider=env_vars["model_provider"],
+            api_key=env_vars["api_key"],
+            base_url=env_vars["base_url"],
+            temperature="0.7",  # Moderate temperature for balanced creativity and accuracy
+            configurable_fields="any",
+            config_prefix="foo",
+        )
+
+        logger.info("Experiment planner model created successfully")
+        return model
+
+    except Exception as e:
+        logger.error("Failed to create experiment planner model: %s", e)
+        raise RuntimeError(f"Failed to create experiment planner model: {e}") from e

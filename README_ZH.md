@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/Development/graph/badge.svg?token=7FDUCM547W)](https://codecov.io/gh/yueguobin/gns3-copilot)
 [![PyPI version](https://img.shields.io/pypi/v/gns3-copilot)](https://pypi.org/project/gns3-copilot/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/gns3-copilot)](https://pypi.org/project/gns3-copilot/)
-![License](https://img.shields.io/badge/license-MIT-green.svg) 
+![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg) 
 [![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macOS-lightgrey)](https://shields.io/)
 
 
@@ -188,7 +188,7 @@ GNS3 Copilot 集成了 Calibre 内容服务器，提供专门的阅读界面：
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+本项目采用 GNU General Public License version 3 or later (GPL-3.0-or-later) 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
 ## 致谢
 

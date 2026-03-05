@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/Development/graph/badge.svg?token=7FDUCM547W)](https://codecov.io/gh/yueguobin/gns3-copilot)
 [![PyPI version](https://img.shields.io/pypi/v/gns3-copilot)](https://pypi.org/project/gns3-copilot/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/gns3-copilot)](https://pypi.org/project/gns3-copilot/)
-![License](https://img.shields.io/badge/license-MIT-green.svg) 
+![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg) 
 [![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macOS-lightgrey)](https://shields.io/)
 
 
@@ -165,7 +165,7 @@ From our extensive testing with gns3-copilot, here are some hard-earned lessons 
 
 ## License
 
-This project uses MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under GNU General Public License version 3 or later (GPL-3.0-or-later) - see [LICENSE](LICENSE) file for details.
 
 ## Acknowledgements
 

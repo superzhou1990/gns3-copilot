@@ -48,7 +48,7 @@ We welcome contributions from the community! Please follow our branching strateg
 
 ## License
 
-This project uses MIT License - see [LICENSE](https://github.com/yueguobin/gns3-copilot/blob/master/LICENSE) for details.
+This project is licensed under GNU General Public License version 3 or later (GPL-3.0-or-later) - see [LICENSE](https://github.com/yueguobin/gns3-copilot/blob/master/LICENSE) for details.
 
 ## Links
 

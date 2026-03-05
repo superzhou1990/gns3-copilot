@@ -1,156 +1,180 @@
-# GNS3 Copilot Project Description
+# GNS3 Copilot 项目描述
 
-## Project Overview
+## 项目概述
 
-**GNS3 Copilot** is an AI-powered network automation assistant designed specifically for GNS3 network simulator. The project implements network device configuration, topology management, and network troubleshooting through natural language interaction.
+**GNS3 Copilot** 是专为 GNS3 网络模拟器设计的 AI 驱动网络自动化助手。该项目通过自然语言交互实现网络设备配置、拓扑管理和网络故障排查。
 
-### Core Technology Stack
-- **Frontend UI**: Streamlit
-- **AI Framework**: LangGraph + LangChain
-- **Network Automation**: Nornir + Netmiko + Telnetlib3
-- **GNS3 Integration**: gns3fy (custom enhanced)
-- **Data Persistence**: SQLite
-- **LLM Support**: OpenAI, DeepSeek, Anthropic, XAI, OpenRouter, etc.
+### 核心技术栈
+- **前端 UI**: Streamlit
+- **AI 框架**: LangGraph + LangChain
+- **网络自动化**: Nornir + Netmiko + Telnetlib3
+- **GNS3 集成**: gns3fy（自定义增强版）
+- **数据持久化**: SQLite
+- **LLM 支持**: OpenAI、DeepSeek、Anthropic、XAI、OpenRouter 等
 
-### Core Features
-- AI-driven conversational interface (natural language interaction)
-- Device configuration management (batch configuration for multiple vendor devices)
-- Topology management (create, modify, and manage GNS3 network topologies)
-- Network diagnostics (intelligent troubleshooting and performance monitoring)
-- Voice interaction (TTS text-to-speech and STT speech-to-text)
-
----
-
-## Project Module Structure
-
-### 1. src/gns3_copilot/ui_model/ - Presentation Layer
-Streamlit web interface components for user interaction and display
-- `chat.py` - Chat interface handling user message flow and response display
-- `settings.py` - System configuration page for LLM, GNS3 server, and other settings
-- `help.py` - Help documentation page
-- `sidebar.py` - Sidebar navigation and project selection UI
-- `utils/app_ui.py` - UI initialization and page routing
-- `utils/chat_helpers.py` - Chat helper functions (message formatting, updates, etc.)
-- `utils/config_manager.py` - Configuration manager (load, save configuration)
-- `utils/gns3_checker.py` - GNS3 connection checking and validation
-- `utils/llm_providers.py` - LLM provider configuration and management
-- `utils/project_manager_ui.py` - Project management UI components
-- `utils/update_ui.py` - UI update logic
-- `utils/updater.py` - Application update checking
-- `utils/translations/` - Internationalization translations directory
-- `styles/main.css` - Interface styles
-
-### 2. src/gns3_copilot/agent/ - LangGraph Agent Framework
-Core AI agent responsible for intent recognition, tool calling, and conversation management
-- `gns3_copilot.py` - Main agent implementation
-  - StateGraph-based multi-node workflow
-  - Includes llm_call, tool_node, title_generator nodes
-  - Integrated with SQLite checkpoint for conversation state persistence
-  - Implements should_continue routing logic
-- `checkpoint_utils.py` - Checkpoint utility functions for state persistence
-
-### 3. src/gns3_copilot/tools_v2/ - Tool Integration Layer
-Defines various network automation tools for LangGraph agent to invoke
-- `config_tools_nornir.py` - Nornir configuration tools (execute configuration commands)
-- `display_tools_nornir.py` - Nornir display command tools (execute show commands)
-- `linux_tools_nornir.py` - Linux device tools (via Netmiko)
-- `vpcs_tools_telnetlib3.py` - VPCS virtual PC tools (via Telnetlib3)
-- `gns3_create_node.py` - Create GNS3 nodes
-- `gns3_create_link.py` - Create GNS3 link connections
-- `gns3_start_node.py` - Start GNS3 nodes
-- `gns3_get_node_temp.py` - Get available GNS3 node templates
-
-### 4. src/gns3_copilot/gns3_client/ - GNS3 Integration Framework
-Client for interacting with GNS3 server API and project management
-- `custom_gns3fy.py` - Enhanced GNS3 client (based on gns3fy extensions)
-- `connector_factory.py` - Connector factory for GNS3 client instantiation
-- `gns3_file_index.py` - GNS3 project file indexing utilities
-- `gns3_projects_list.py` - Project list management
-- `gns3_topology_reader.py` - Topology information reading and analysis
-- `gns3_project_create.py` - Create new GNS3 projects
-- `gns3_project_delete.py` - Delete GNS3 projects
-- `gns3_project_open.py` - Open existing GNS3 projects
-- `gns3_project_path.py` - Get GNS3 project paths
-- `gns3_project_update.py` - Update GNS3 project metadata
-- `gns3_project_list_files.py` - List files in GNS3 project
-- `gns3_project_read_file.py` - Read files from GNS3 project
-- `gns3_project_write_file.py` - Write files to GNS3 project
-
-### 5. src/gns3_copilot/public_model/ - Public Model Layer
-Common models and utility functions
-- `openai_tts.py` - Text-to-speech (TTS) functionality
-- `openai_stt.py` - Speech-to-text (STT) functionality
-- `parse_tool_content.py` - Tool execution result parsing
-- `get_gns3_device_port.py` - Get GNS3 device port information
-
-### 6. src/gns3_copilot/prompts/ - Prompt Templates
-LLM prompt management supporting multiple languages and proficiency levels
-- `base_prompt.py` - Base prompt template
-- `prompt_loader.py` - Prompt loader utility
-- `title_prompt.py` - Conversation title generation prompt
-- `english_level_prompt_*.py` - English proficiency level prompts (A1-C2)
-- `voice_prompt_*.py` - Voice-related prompts for different English levels
-- `vocie_prompt.py` - Voice prompt (legacy naming)
-
-### 7. src/gns3_copilot/log_config/ - Logging Configuration
-- `logging_config.py` - Unified logging configuration
+### 核心功能
+- AI 驱动的对话界面（自然语言交互）
+- 设备配置管理（多厂商设备批量配置）
+- 拓扑管理（创建、修改和管理 GNS3 网络拓扑）
+- 绘图管理（创建、更新和删除 GNS3 绘图）
+- 网络诊断（智能故障排查和性能监控）
+- 语音交互（TTS 文字转语音和 STT 语音转文字）
+- 笔记功能（阅读和笔记管理）
 
 ---
 
-# General Coding Guidelines - Follow PEP 8 and Python Best Practices
+## 项目模块结构
 
-1. Code Style
-   - Follow PEP 8 code style guidelines
-   - Use meaningful variable names and function names
-   - Avoid abbreviations and single-character naming (except loop variables)
-   - Keep each line under 88 characters (follow black formatting)
+### 1. src/gns3_copilot/ui_model/ - 表现层
+用于用户交互和显示的 Streamlit Web 界面组件
+- `chat.py` - 处理用户消息流和响应显示的聊天界面
+- `settings.py` - LLM、GNS3 服务器及其他设置的系统配置页面
+- `help.py` - 帮助文档页面
+- `reading.py` - 阅读/笔记功能页面
+- `sidebar.py` - 侧边栏导航和项目选择 UI
+- `utils/app_ui.py` - UI 初始化和页面路由
+- `utils/chat_helpers.py` - 聊天辅助函数（消息格式化、更新等）
+- `utils/config_manager.py` - 配置管理器（加载、保存配置）
+- `utils/gns3_checker.py` - GNS3 连接检查和验证
+- `utils/llm_providers.py` - LLM 提供商配置和管理
+- `utils/project_manager_ui.py` - 项目管理 UI 组件
+- `utils/update_ui.py` - UI 更新逻辑
+- `utils/updater.py` - 应用更新检查
+- `utils/iframe_viewer.py` - iframe 查看器组件
+- `utils/notes_manager.py` - 笔记管理器
+- `utils/README.md` - 工具说明文档
+- `styles/` - 界面样式目录
 
-2. Code Organization
-   - Maintain single responsibility for functions, avoid overly long functions (recommended not to exceed 50 lines)
-   - Extract repeated code into independent functions or constants
-   - Minimize the use of global variables
-   - Organize related functionality together
+### 2. src/gns3_copilot/agent/ - LangGraph 代理框架
+负责意图识别、工具调用和对话管理的核心 AI 代理
+- `gns3_copilot.py` - 主代理实现
+  - 基于 StateGraph 的多节点工作流
+  - 包含 llm_call、tool_node、title_generator 节点
+  - 集成 SQLite 检查点实现对话状态持久化
+  - 实现 should_continue 路由逻辑
+- `checkpoint_utils.py` - 状态持久化的检查点实用函数
+- `model_factory.py` - LLM 模型工厂类（用于创建不同提供商的 LLM 实例）
 
-3. Type Annotations
-   - Add type annotations for public functions
-   - Use type hints (typing module) to improve code readability
+### 3. src/gns3_copilot/tools_v2/ - 工具集成层
+定义供 LangGraph 代理调用的各种网络自动化工具
+- `config_tools_nornir.py` - Nornir 配置工具（执行配置命令）
+- `display_tools_nornir.py` - Nornir 显示命令工具（执行 show 命令）
+- `linux_tools_nornir.py` - Linux 设备工具（通过 Netmiko）
+- `vpcs_tools_telnetlib3.py` - VPCS 虚拟 PC 工具（通过 Telnetlib3）
+- `gns3_create_node.py` - 创建 GNS3 节点
+- `gns3_create_link.py` - 创建 GNS3 链路连接
+- `gns3_create_area_drawing.py` - 创建 GNS3 区域绘图
+- `gns3_start_node.py` - 启动 GNS3 节点
+- `gns3_get_node_temp.py` - 获取可用的 GNS3 节点模板
 
-4. Docstrings
-   - Add docstrings for functions and classes
-   - Follow Google or NumPy style docstring format
+### 4. src/gns3_copilot/gns3_client/ - GNS3 集成框架
+用于与 GNS3 服务器 API 和项目管理交互的客户端
+- `custom_gns3fy.py` - 增强的 GNS3 客户端（基于 gns3fy 扩展）
+- `connector_factory.py` - GNS3 客户端实例化的连接器工厂
+- `gns3_file_index.py` - GNS3 项目文件索引工具
+- `gns3_projects_list.py` - 项目列表管理
+- `gns3_topology_reader.py` - 拓扑信息读取和分析
+- `gns3_get_nodes.py` - 获取 GNS3 节点信息
+- `gns3_create_drawing.py` - 创建 GNS3 绘图
+- `gns3_delete_drawing.py` - 删除 GNS3 绘图
+- `gns3_get_drawings.py` - 获取 GNS3 绘图列表
+- `gns3_update_drawing.py` - 更新 GNS3 绘图
+- `gns3_project_create.py` - 创建新的 GNS3 项目
+- `gns3_project_delete.py` - 删除 GNS3 项目
+- `gns3_project_open.py` - 打开现有的 GNS3 项目
+- `gns3_project_path.py` - 获取 GNS3 项目路径
+- `gns3_project_update.py` - 更新 GNS3 项目元数据
+- `gns3_project_lock.py` - GNS3 项目锁定管理
+- `gns3_project_list_files.py` - 列出 GNS3 项目中的文件
+- `gns3_project_read_file.py` - 从 GNS3 项目读取文件
+- `gns3_project_write_file.py` - 向 GNS3 项目写入文件
 
-5. Code Quality
-   - Avoid deep nesting (recommended not to exceed 4 levels)
-   - Use early return to reduce nesting
-   - Keep code concise and readable
+### 5. src/gns3_copilot/utils/ - 公共模型层
+公共模型和实用函数
+- `app_config.py` - 应用配置管理
+- `config_db.py` - 配置数据库管理
+- `openai_tts.py` - 文字转语音（TTS）功能
+- `openai_stt.py` - 语音转文字（STT）功能
+- `parse_tool_content.py` - 工具执行结果解析
+- `get_gns3_device_port.py` - 获取 GNS3 设备端口信息
+- `gns3_drawing_utils.py` - GNS3 绘图工具函数
 
-6. Testing and Static Analysis
-   - Do not run or fix test code unless explicitly requested by the user
-   - Ensure existing tests still pass when modifying code
-   - Add test coverage for new features
-   - Run `make lint` after code modifications to check code style
-   - Run `make type-check` after code modifications to verify type annotations
+### 6. src/gns3_copilot/prompts/ - 提示词模板
+支持多种语言和熟练度级别的 LLM 提示词管理
+- `base_prompt.py` - 基础提示词模板
+- `prompt_loader.py` - 提示词加载器实用函数
+- `title_prompt.py` - 对话标题生成提示词
+- `drawing_prompt.py` - 绘图相关提示词
+- `linux_specialist_prompt.py` - Linux 专家提示词
+- `notes_prompt.py` - 笔记功能提示词
+- `english_level_prompt_*.py` - 英语熟练度级别提示词（A1-C2）
+- `voice_prompt_*.py` - 不同英语级别的语音相关提示词
+- `vocie_prompt.py` - 语音提示词（旧命名）
+- `specialized/` - 专业化提示词目录
 
-7. Network Operations
-   - All network operations (SSH/Telnet/API calls) must set reasonable timeout values
-   - Implement retry mechanisms to handle temporary network failures
-   - GNS3 API calls need to be compatible with v2 and v3 versions
-   - Tool functions should be idempotent (repeatable without side effects)
+### 7. src/gns3_copilot/log_config/ - 日志配置
+- `logging_config.py` - 统一日志配置
 
-8. Security and Sensitive Information
-   - Sensitive information (API keys, passwords, etc.) must be managed through environment variables
-   - Do not commit .env files to version control
-   - Avoid logging sensitive information
-   - Follow principle of least privilege for GNS3 server access configuration
+### 8. 应用入口文件
+- `src/gns3_copilot/app.py` - Streamlit 应用主入口
+- `src/gns3_copilot/main.py` - 程序主入口
 
-9. UI and Streamlit Guidelines
-   - Use Streamlit's built-in Material Design icons with the `:material:` prefix (e.g., `:material:home:`, `:material:settings:`, `:material:add:`)
-   - Prefer Material icons over emoji for better visual consistency and accessibility
-   - Use appropriate icons that match the semantic meaning of UI elements
-   - Refer to Streamlit documentation for available Material icons
+---
 
-10. Module Responsibility Principle
-   - Follow single responsibility principle, each module focuses on specific functionality
-   - Tool layer (tools_v2) only defines tools, does not contain business logic
-   - Agent layer (agent) is responsible for tool selection and invocation
-   - UI layer (ui_model) only handles display and user interaction, does not contain business logic
+# 通用编码规范 - 遵循 PEP 8 和 Python 最佳实践
+
+1. 代码风格
+   - 遵循 PEP 8 代码风格指南
+   - 使用有意义的变量名和函数名
+   - 避免缩写和单字符命名（循环变量除外）
+   - 每行保持 88 字符以内（遵循 black 格式化）
+
+2. 代码组织
+   - 保持函数单一职责，避免函数过长（建议不超过 50 行）
+   - 将重复代码提取为独立函数或常量
+   - 最小化全局变量的使用
+   - 将相关功能组织在一起
+
+3. 类型注解
+   - 为公共函数添加类型注解
+   - 使用类型提示（typing 模块）提高代码可读性
+
+4. 文档字符串
+   - 为函数和类添加文档字符串
+   - 遵循 Google 或 NumPy 风格的文档字符串格式
+
+5. 代码质量
+   - 避免深层嵌套（建议不超过 4 层）
+   - 使用提前返回以减少嵌套
+   - 保持代码简洁易读
+
+6. 测试和静态分析
+   - 除非明确要求，否则不运行或修复测试代码
+   - 修改代码时确保现有测试仍然通过
+   - 为新功能添加测试覆盖
+   - 代码修改后运行 `make lint` 检查代码风格
+   - 代码修改后运行 `make type-check` 验证类型注解
+
+7. 网络操作
+   - 所有网络操作（SSH/Telnet/API 调用）必须设置合理的超时值
+   - 实现重试机制以处理临时网络故障
+   - GNS3 API 调用需要兼容 v2 和 v3 版本
+   - 工具函数应该是幂等的（可重复执行且无副作用）
+
+8. 安全和敏感信息
+   - 敏感信息（API 密钥、密码等）必须通过环境变量管理
+   - 不要将 .env 文件提交到版本控制
+   - 避免记录敏感信息
+   - 遵循最小权限原则进行 GNS3 服务器访问配置
+
+9. UI 和 Streamlit 指南
+   - 使用 Streamlit 内置的 Material Design 图标，前缀为 `:material:`（例如 `:material:home:`、`:material:settings:`、`:material:add:`）
+   - 优先使用 Material 图标而非 emoji，以获得更好的视觉一致性和可访问性
+   - 使用与 UI 元素语义相匹配的适当图标
+   - 参考 Streamlit 文档了解可用的 Material 图标
+
+10. 模块职责原则
+    - 遵循单一职责原则，每个模块专注于特定功能
+    - 工具层（tools_v2）仅定义工具，不包含业务逻辑
+    - 代理层（agent）负责工具选择和调用
+    - UI 层（ui_model）仅处理显示和用户交互，不包含业务逻辑
