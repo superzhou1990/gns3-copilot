@@ -48,7 +48,7 @@
 
 ## 许可证
 
-本项目使用 MIT 许可证 - 详情请参阅 [LICENSE](https://github.com/yueguobin/gns3-copilot/blob/master/LICENSE)
+本项目采用 GNU General Public License version 3 or later (GPL-3.0-or-later) 许可证 - 详情请参阅 [LICENSE](https://github.com/yueguobin/gns3-copilot/blob/master/LICENSE)
 
 ## 链接
 
