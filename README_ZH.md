@@ -1,5 +1,7 @@
 # GNS3 Copilot
 
+> **⚠️ 重要提示：** 本项目已合并至 [GNS3 3.10 alpha 1 release](https://gns3.com/community/blog/gns3-3-1-0-alpha-1-released)。此仓库仅用于测试和验证用途。
+
 [![CI - QA & Testing](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/ci.yaml)
 [![CD - Production Release](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml/badge.svg)](https://github.com/yueguobin/gns3-copilot/actions/workflows/cd.yaml)
 [![codecov](https://codecov.io/gh/yueguobin/gns3-copilot/branch/Development/graph/badge.svg?token=7FDUCM547W)](https://codecov.io/gh/yueguobin/gns3-copilot)
